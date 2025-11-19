@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "In Pool verschieben",
+  "name": "Nach Abgesagt verschieben",
   "description": "E-Mail auswählen, dann auf diesen Button klicken",
   "version": "0.1",
   "author": "Your Name",
@@ -22,7 +22,7 @@
   },
 
   "message_display_action": {
-    "default_title": "Nach Pool Verschieben",
+    "default_title": "Nach Abgesagt verschieben",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png"

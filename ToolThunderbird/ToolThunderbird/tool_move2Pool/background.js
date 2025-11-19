@@ -41,17 +41,24 @@ browser.messageDisplayAction.onClicked.addListener(async (tab) => {
 async function findRejectedFolder() {
   const accounts = await browser.accounts.list();
   for (const account of accounts) {
-    const folder = findFolderByName(account.folders, "Pool");
+    const folder = findFolderByName(account.folders, "abgesagt", null);
     if (folder) return folder;
   }
   return null;
 }
 
-function findFolderByName(folders, name) {
+function findFolderByName(folders, name, parentFolderName) {
   if (!folders) return null;
   for (const f of folders) {
-    if (f.name === name) return f;
-    const sub = findFolderByName(f.subFolders, name);
+    // Check if current folder matches the target name
+    if (f.name === name) {
+      // Check if parent folder's name starts with "Bewerber"
+      if (parentFolderName && parentFolderName.startsWith("Bewerber")) {
+        return f;
+      }
+    }
+    // Recurse into subfolders, passing current folder's name as parent
+    const sub = findFolderByName(f.subFolders, name, f.name);
     if (sub) return sub;
   }
   return null;

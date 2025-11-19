@@ -106,7 +106,7 @@ function extractApplicantInfo(appHeader, appFull) {
   const jobPosition = extractJobPosition(bodyText);
 
   return {
-    name: betterName || name || "Applicant",
+    name: betterName || name || "Bewerber",
     email: email,
     position: jobPosition || null
   };
@@ -129,7 +129,7 @@ function extractJobPosition(body) {
     /hiermit\s+bewerbe\s+ich\s+mich\s+für\s+die\s+position\s+([^.,\n]+)/i,
     /meine\s+bewerbung\s+als\s+([^.,\n]+)/i,
     /hiermit\s+um\s+die\s+stelle\s+als\s+([^.,\n]+)/i,
-    /die\s+stelle\s+als\s+([^.,\n]+)/i,
+    /die\s+(?:\w+\s+)*stelle\s+als\s+([^.,\n]+)/i,
     
 
     // English
@@ -264,15 +264,21 @@ function tryGuessNameFromBody(currentName, body) {
 
 async function fillRejectionTemplate(composeTabId, applicant, appHeader, appFull) {
 
-  const name = applicant.name || "Applicant";
+  const name = applicant.name || "Bewerber";
 
   const receivedDate = new Date(appHeader.date).toLocaleDateString();
-  const originalSubject = stripFwRe(appHeader.subject || "your application");
+  const originalSubject = stripFwRe(appHeader.subject || "Rückmeldung bezüglich ihrer Bewerbung");
 
   let positionText = "";
   if (applicant.position) {
-    positionText = ` regarding the position "${applicant.position}"`;
+    positionText = ` als "${applicant.position}"`;
   }
+
+  // Regex, um "in Ihrem Unternehmen" zu entfernen, falls vorhanden
+const regexInIhrerUnternehmen = /in Ihrem Unternehmen/gi;
+
+// Anwenden der Ersetzung
+positionText = positionText.replace(regexInIhrerUnternehmen, '').trim();
 
 
 const templateText = `
