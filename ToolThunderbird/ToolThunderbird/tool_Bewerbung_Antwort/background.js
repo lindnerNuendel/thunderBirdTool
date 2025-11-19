@@ -128,6 +128,9 @@ function extractJobPosition(body) {
     /hiermit\s+bewerbe\s+ich\s+mich\s+als\s+([^.,\n]+)/i,
     /hiermit\s+bewerbe\s+ich\s+mich\s+für\s+die\s+position\s+([^.,\n]+)/i,
     /meine\s+bewerbung\s+als\s+([^.,\n]+)/i,
+    /hiermit\s+um\s+die\s+stelle\s+als\s+([^.,\n]+)/i,
+    /die\s+stelle\s+als\s+([^.,\n]+)/i,
+    
 
     // English
     /I\s+am\s+applying\s+for\s+the\s+position\s+of\s+([^.,\n]+)/i,
