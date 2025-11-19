@@ -131,6 +131,7 @@ function extractJobPosition(body) {
     /hiermit\s+um\s+die\s+stelle\s+als\s+([^.,\n]+)/i,
     /die\s+(?:\w+\s+)*stelle\s+als\s+([^.,\n]+)/i,
     
+    /position\s+als\s+([^\[\]\n]+?)(?=\s+in\s+Ihrem|\s+bei|\s+in|\s+bei\s+[^\s]+|$)/i,
 
     // English
     /I\s+am\s+applying\s+for\s+the\s+position\s+of\s+([^.,\n]+)/i,
