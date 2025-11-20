@@ -196,7 +196,7 @@ function parseNameEmail(fromHeader) {
 
 // --- Parse name + email ---
 function parseStepStoneNameEmail(sBodyText) {
-  const pattern = /\*Antwort an:\*\s*([^<]+)?\s*<([^>]+)>/i;
+  const pattern = /Antwort an:\s*([^<]+)?\s*<([^>]+)>/i;
   const match = sBodyText.match(pattern);
   let sname = null;
   let semail = null;
@@ -207,7 +207,7 @@ function parseStepStoneNameEmail(sBodyText) {
     semail = match[2].trim();
   } else {
     // fallback: look for email only after *Antwort an:*
-    const emailMatch = sBodyText.match(/\*Antwort an:\*\s*[^<]*<([^>]+)>/i);
+    const emailMatch = sBodyText.match(/Antwort an:\s*[^<]*<([^>]+)>/i);
     if (emailMatch) {
       semail = emailMatch[1].trim();
       // Derive name from email if not provided
