@@ -133,9 +133,8 @@ function extractApplicantInfo(appHeader, appFull) {
 function extractJobPosition(body) {
   if (!body) return null;
 
-
   body = body.replace(/\s+/g, " ").trim();
-  console.log(body)
+
   const patterns = [
     /bewerbung\s+als\s+([^.,\n]+)/i,
     /bewerbung\s+um\s+die\s+stelle\s+als\s+([^.,\n]+)/i,
@@ -147,41 +146,62 @@ function extractJobPosition(body) {
     /meine\s+bewerbung\s+als\s+([^.,\n]+)/i,
     /hiermit\s+um\s+die\s+stelle\s+als\s+([^.,\n]+)/i,
     /die\s+(?:\w+\s+)*stelle\s+als\s+([^.,\n]+)/i,
-
     /initiativbewerbung\s+als\s+(.+?)(?:\s+am|\n|\.|,|$)/i,
     /initiativbewerbung\s+um\s+die\s+stelle\s+als\s+(.+?)(?:\s+am|\n|\.|,|$)/i,
-/initiativbewerbung\s+um\s+die\s+stelle\s+(.+?)(?:\s+am|\n|\.|,|$)/i,
-    
+    /initiativbewerbung\s+um\s+die\s+stelle\s+(.+?)(?:\s+am|\n|\.|,|$)/i,
     /position\s+als\s+([^\[\]\n]+?)(?=\s+in\s+Ihrem|\s+bei|\s+in|\s+bei\s+[^\s]+|$)/i,
-
-    // English
+    // Englisch
     /I\s+am\s+applying\s+for\s+the\s+position\s+of\s+([^.,\n]+)/i,
     /application\s+for\s+the\s+position\s+of\s+([^.,\n]+)/i
   ];
+
 const stopWords = ["Sehr", "Hallo", "Guten", "guten", "hallo", "sehr"];
 
-  for (const regex of patterns) {
-    const m = body.match(regex);
-    if (m && m[1]) {
-      const candidate = m[1].trim();
+for (const regex of patterns) {
+  const m = body.match(regex);
+  console.log(m);
+  if (m && m[1]) {
+    let candidate = m[1].trim();
 
-      // Check for stop words
-      const hasStopWord = stopWords.some(word => candidate.startsWith(word));
-      // Check for punctuation
-      const hasPunctuation = /[.,]/.test(candidate);
-      // Count words
-      const wordCount = candidate.split(/\s+/).length;
+    // Prüfe auf die Schlüsselwörter als eigenständige Wörter
+    const triggerWords = ["am", "in", "ab", "die", "welche"];
 
-      if (hasStopWord || hasPunctuation || wordCount > 3) {
-        continue; // Skip this match and try the next pattern
+    // Finde, ob eines der Trigger-Wörter als eigenständiges Wort vorkommt
+    let cutOffIndex = -1;
+    let triggerWordLength = 0;
+    const regexWord = new RegExp(`\\b(${triggerWords.join('|')})\\b`, 'i');
+    const match = regexWord.exec(candidate);
+    if (match) {
+      // Index des Trigger-Wortes
+      const index = match.index;
+      // Kürze bis zum Anfang des Trigger-Wortes
+      candidate = candidate.slice(0, index).trim();
+    } else {
+      // Begrenze auf maximal 3 Wörter
+      const words = candidate.split(/\s+/);
+      if (words.length > 3) {
+        candidate = words.slice(0, 3).join(" ");
       }
-      return candidate;
     }
-  }
 
-  return null;
+    // Check for Stop Words
+    const hasStopWord = stopWords.some(word => candidate.startsWith(word));
+
+    // Check for Punctuation
+    const hasPunctuation = /[.,]/.test(candidate);
+
+    // Count words
+    const wordCount = candidate.split(/\s+/).length;
+
+    console.log(candidate, hasStopWord, hasPunctuation, wordCount);
+
+    // Rückgabe des gekürzten oder ursprünglichen Kandidaten
+    return candidate;
+  }
 }
 
+return null;
+}
 
 // --- Parse name + email ---
 function parseNameEmail(fromHeader) {
