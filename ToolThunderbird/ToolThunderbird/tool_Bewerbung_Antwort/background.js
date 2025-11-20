@@ -1,4 +1,4 @@
-// HR Reject Button - background.js
+//  background.js
 
 // Entry point: user clicks "Reject candidate" on a displayed message
 browser.messageDisplayAction.onClicked.addListener(async (tab) => {
@@ -91,6 +91,9 @@ function stripFwRe(subject) {
   return subject.replace(/^\s*((re|fw|fwd|wg|aw):\s*)+/i, "").trim();
 }
 
+function isStepstone(subject){
+  return subject.toLowerCase().includes("bewerbung über stepstone");
+}
 
 // ======================================================================
 // 3.2 Extract applicant info
@@ -98,13 +101,27 @@ function stripFwRe(subject) {
 
 function extractApplicantInfo(appHeader, appFull) {
   const fromRaw = (appFull.headers.from && appFull.headers.from[0]) || appHeader.author || "";
+  
   const { name, email } = parseNameEmail(fromRaw);
-
   const bodyText = getPlainBody(appFull);
-
   const betterName = tryGuessNameFromBody(name, bodyText);
   const jobPosition = extractJobPosition(bodyText);
 
+  if (isStepstone(bodyText)){
+
+  
+  const { sname, semail, sjobPosition} = parseStepStoneNameEmail(bodyText);
+
+    console.log(sname, semail, sjobPosition)
+    console.log(typeof(sname), typeof(semail), typeof(sjobPosition))
+  return {
+      name: sname || "Bewerber",
+      email: semail,
+      position: sjobPosition || null
+    };
+
+
+  }
   return {
     name: betterName || name || "Bewerber",
     email: email,
@@ -174,6 +191,52 @@ function parseNameEmail(fromHeader) {
 
   return { name, email };
 }
+
+
+
+// --- Parse name + email ---
+function parseStepStoneNameEmail(sBodyText) {
+  const pattern = /\*Antwort an:\*\s*([^<]+)?\s*<([^>]+)>/i;
+  const match = sBodyText.match(pattern);
+  let sname = null;
+  let semail = null;
+  let sjobPosition = null;
+
+  if (match) {
+    sname = match[1] ? match[1].trim() : null;
+    semail = match[2].trim();
+  } else {
+    // fallback: look for email only after *Antwort an:*
+    const emailMatch = sBodyText.match(/\*Antwort an:\*\s*[^<]*<([^>]+)>/i);
+    if (emailMatch) {
+      semail = emailMatch[1].trim();
+      // Derive name from email if not provided
+      const localPart = semail.split("@")[0];
+      sname = localPart
+        .replace(/[._-]+/g, " ")
+        .split(" ")
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+    }
+  }
+
+  
+  const stellePattern = /Stelle als\s+([^“”"“”]+?)(?:\s|\n|$)/i;
+  console.log(sBodyText)
+  const stelleMatch = sBodyText.match(stellePattern);
+  sjobPosition = stelleMatch ? stelleMatch[1].trim() : null;
+
+  return { sname, semail, sjobPosition };
+}
+
+
+
+
+
+
+
+
+
 
 
 // --- Extract plain-body ---
@@ -268,7 +331,13 @@ async function fillRejectionTemplate(composeTabId, applicant, appHeader, appFull
   const name = applicant.name || "Bewerber";
 
   const receivedDate = new Date(appHeader.date).toLocaleDateString();
-  const originalSubject = stripFwRe(appHeader.subject || "Rückmeldung bezüglich ihrer Bewerbung");
+  originalSubject = stripFwRe(appHeader.subject || "Rückmeldung bezüglich ihrer Bewerbung");
+
+  if (isStepstone(originalSubject)){
+    originalSubject = "Antwort bezüglich ihrer Bewerbung über Stepstone"; 
+
+    //hier noch "antwort an: marcus ... filtern "
+  }
 
   let positionText = "";
   if (applicant.position) {
