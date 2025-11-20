@@ -111,11 +111,11 @@ function extractApplicantInfo(appHeader, appFull) {
 
   
   const { sname, semail, sjobPosition} = parseStepStoneNameEmail(bodyText);
-
-  const{sBackUpName, sBackUpMail, sBackUpPosition} = StepStoneBackUp(bodyText)
+  const{sBackUpName, sBackUpMail, sBackUpPosition} = StepStoneBackUp(bodyText);
+  console.log(sBackUpMail, semail)
   return {
       name: sname || sBackUpName || "Bewerber",
-      email: sBackUpMail || semail,
+      email: semail ||  sBackUpMail,
       position: sjobPosition || sBackUpPosition || null
     };
 
@@ -257,13 +257,27 @@ function StepStoneBackUp(bodyText){
   const positionMatch = cleanText.match(/Stelle\s*als\s*(.*?)\s*bei uns ein/i);
   const sBackUpPosition = positionMatch ? positionMatch[1] :null;
 
-  // Regex für den Namen (Bewerbung von .... im Anfang)
+  //Regex für den Namen (Bewerbung von .... im Anfang)
   const nameMatch = cleanText.match(/Bewerbung von\s*([\w\s]+)\s*im Anhang/i);
   const sBackUpName = nameMatch ? nameMatch[1].trim() : "Bewerber";
 
-  // Regex für die E-Mail
+  /* Regex für die E-Mail
   const emailMatch = cleanText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-  const sBackUpMail = emailMatch ? emailMatch[0] : "LEER";
+  const sBackUpMail = emailMatch ? emailMatch[0] : "LEER"; */
+
+    // Alle E-Mail-Adressen im Text finden
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+  const emails = cleanText.match(emailRegex) || [];
+
+  // Funktion, um eine gültige E-Mail zu filtern
+  const validEmails = emails.filter(email => 
+    !email.includes("@nuendel") && !email.includes("@email.stepstone.de")
+  );
+
+  // Die erste gültige E-Mail auswählen
+  const sBackUpMail = validEmails.length > 0 ? validEmails[0] : "LEER";
+
+
   return {
     sBackUpName,
     sBackUpMail,
