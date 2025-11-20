@@ -6,7 +6,7 @@ browser.messageDisplayAction.onClicked.addListener(async (tab) => {
     // 1) Get currently displayed message
     const displayed = await browser.messageDisplay.getDisplayedMessage(tab.id);
     if (!displayed) {
-      console.log("No message displayed.");
+      //console.log("No message displayed.");
       return;
     }
 
@@ -112,12 +112,11 @@ function extractApplicantInfo(appHeader, appFull) {
   
   const { sname, semail, sjobPosition} = parseStepStoneNameEmail(bodyText);
 
-    console.log(sname, semail, sjobPosition)
-    console.log(typeof(sname), typeof(semail), typeof(sjobPosition))
+  const{sBackUpName, sBackUpMail, sBackUpPosition} = StepStoneBackUp(bodyText)
   return {
-      name: sname || "Bewerber",
-      email: semail,
-      position: sjobPosition || null
+      name: sname || sBackUpName || "Bewerber",
+      email: semail || sBackUpMail,
+      position: sjobPosition || sBackUpPosition || null
     };
 
 
@@ -222,7 +221,7 @@ function parseStepStoneNameEmail(sBodyText) {
 
   
   const stellePattern = /Stelle als\s+([^“”"“”]+?)(?:\s|\n|$)/i;
-  console.log(sBodyText)
+ // console.log(sBodyText)
   const stelleMatch = sBodyText.match(stellePattern);
   sjobPosition = stelleMatch ? stelleMatch[1].trim() : null;
 
@@ -230,6 +229,27 @@ function parseStepStoneNameEmail(sBodyText) {
 }
 
 
+function StepStoneBackUp(bodyText){
+  // Regex für die Position (Stelle als ...)
+  const cleanText = bodyText.replace(/\s+/g, ' ').trim();
+
+  // Regex, um den Jobtitel zwischen "Stelle" und "bei uns ein" zu erfassen
+  const positionMatch = cleanText.match(/Stelle\s*als\s*(.*?)\s*bei uns ein/i);
+  const sBackUpPosition = positionMatch ? positionMatch[1] :null;
+
+  // Regex für den Namen (Bewerbung von .... im Anfang)
+  const nameMatch = cleanText.match(/Bewerbung von\s*([\w\s]+)\s*im Anhang/i);
+  const sBackUpName = nameMatch ? nameMatch[1].trim() : "Bewerber";
+
+  // Regex für die E-Mail
+  const emailMatch = cleanText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  const sBackUpMail = emailMatch ? emailMatch[0] : "LEER";
+  return {
+    sBackUpName,
+    sBackUpMail,
+    sBackUpPosition
+  };
+}
 
 
 
